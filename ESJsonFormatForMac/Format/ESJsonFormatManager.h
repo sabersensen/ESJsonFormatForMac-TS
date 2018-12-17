@@ -19,6 +19,15 @@
  */
 + (NSString *)parsePropertyContentWithClassInfo:(ESClassInfo *)classInfo;
 
+
+/**
+ 解析一个类里面 属性对应的非基础类 放入modelContainerPropertyGenericClass中
+
+ @param classInfo 类信息
+ @return 
+ */
++ (NSString *)parsePropertyContentZWithClassInfo:(ESClassInfo *)classInfo;
+
 /**
  *  解析一个类头文件的内容(会根据是否创建文件返回的内容有所不同)
  *

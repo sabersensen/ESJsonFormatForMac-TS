@@ -60,6 +60,13 @@
 
 
 /**
+ * 所有属性对类的定义modelContainerPropertyGenericClass TS使用
+ */
+@property (nonatomic, copy) NSString *classContentForZ;
+
+
+
+/**
  *  直接插入到.h文件或者与.swift文件中内容 -- 不包含当前类里面属性字段，只有里面引用类的.h文件内容
  */
 @property (nonatomic, copy) NSString *classInsertTextViewContentForH;

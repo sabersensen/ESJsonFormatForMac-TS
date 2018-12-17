@@ -22,4 +22,5 @@
 
 @property (nonatomic, copy) NSString *currentFilePath;
 @property (nonatomic, assign) BOOL isSwift;
+@property (nonatomic, assign) BOOL isTs;
 @end

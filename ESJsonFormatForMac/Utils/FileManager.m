@@ -26,24 +26,14 @@
              hContent :(NSString *)hContent
              mContent :(NSString *)mContent
 {
-    NSString *modelStr = [NSString stringWithFormat:@"//\n//Created by ESJsonFormatForMac on %@.\n//\n\n",[self getDateStr]];
+    NSString *modelStr = [NSString stringWithFormat:@"//\n//Created by ESJsonFormatForMac-TS-ZSX on %@.\n//\n\n",[self getDateStr]];
     NSMutableString *hImportStr = nil;
     NSString *mImportStr = nil;
     NSString *newHContent = nil;
     NSString *newMContent = nil;
-     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"isSwift"]) {
-         
-         hImportStr = [NSMutableString stringWithString:@"#import <Foundation/Foundation.h>\n\n"];
-         NSString *superClassString = [[NSUserDefaults standardUserDefaults] valueForKey:@"SuperClass"];
-         if (superClassString&&superClassString.length>0) {
-             [hImportStr appendString:[NSString stringWithFormat:@"#import \"%@.h\" \n\n",superClassString]];
-         }
+     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"isSwift"]) {
          
          
-         mImportStr = [NSString stringWithFormat:@"#import \"%@\"\n",hFileName];
-         newHContent = [NSString stringWithFormat:@"%@%@%@",modelStr,hImportStr,hContent];
-         newMContent = [NSString stringWithFormat:@"%@%@%@",modelStr,mImportStr,mContent];
-     }else{
          
          hImportStr = [NSMutableString stringWithString:@"import UIKit\n\n"];
          NSString *superClassString = [[NSUserDefaults standardUserDefaults] valueForKey:@"SuperClass"];
@@ -51,6 +41,18 @@
              [hImportStr appendString:[NSString stringWithFormat:@"import %@ \n\n",superClassString]];
          }
          newHContent = [NSString stringWithFormat:@"%@%@%@",modelStr,hImportStr,hContent];
+     }else if([[NSUserDefaults standardUserDefaults] boolForKey:@"isTs"]){
+         newHContent = [NSString stringWithFormat:@"%@%@",modelStr,hContent];
+     }else{
+         hImportStr = [NSMutableString stringWithString:@"#import <Foundation/Foundation.h>\n\n"];
+         NSString *superClassString = [[NSUserDefaults standardUserDefaults] valueForKey:@"SuperClass"];
+         if (superClassString&&superClassString.length>0) {
+             [hImportStr appendString:[NSString stringWithFormat:@"#import \"%@.h\" \n\n",superClassString]];
+         }
+         
+         mImportStr = [NSString stringWithFormat:@"#import \"%@\"\n",hFileName];
+         newHContent = [NSString stringWithFormat:@"%@%@%@",modelStr,hImportStr,hContent];
+         newMContent = [NSString stringWithFormat:@"%@%@%@",modelStr,mImportStr,mContent];
      }
     
     [self createFileWithFolderPath:folderPath hFileName:hFileName mFileName:mFileName hContent:newHContent mContent:newMContent];

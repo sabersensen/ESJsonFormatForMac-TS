@@ -16,6 +16,7 @@ static ESJsonFormat *instance;
 @interface ESJsonFormat : NSObject
 
 @property (nonatomic, assign) BOOL isSwift;
+@property (nonatomic, assign) BOOL isTs;
 
 + (instancetype)sharedPlugin;
 + (instancetype)instance;

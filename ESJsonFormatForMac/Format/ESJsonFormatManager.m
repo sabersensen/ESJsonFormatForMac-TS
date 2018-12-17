@@ -28,10 +28,27 @@
     [dic enumerateKeysAndObjectsUsingBlock:^(id key, NSObject *obj, BOOL *stop) {
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"isSwift"]) {
             [resultStr appendFormat:@"\n%@\n",[self formatSwiftWithKey:key value:obj classInfo:classInfo]];
+        }else if([[NSUserDefaults standardUserDefaults] boolForKey:@"isTs"]){
+            [resultStr appendFormat:@"\n%@\n",[self formatTSWithKey:key value:obj classInfo:classInfo]];
         }else{
             [resultStr appendFormat:@"\n%@\n",[self formatObjcWithKey:key value:obj classInfo:classInfo]];
         }
     }];
+    return resultStr;
+}
+
++ (NSString *)parsePropertyContentZWithClassInfo:(ESClassInfo *)classInfo{
+    NSMutableString *resultStr = [NSMutableString stringWithFormat:@"\n    modelContainerPropertyGenericClass = function () {\n       return{"];
+    NSDictionary *dic = classInfo.classDic;
+    
+    [dic enumerateKeysAndObjectsUsingBlock:^(id key, NSObject *obj, BOOL *stop) {
+        if([[NSUserDefaults standardUserDefaults] boolForKey:@"isTs"]){
+            if ([self formatTSForGCMWithKey:key value:obj classInfo:classInfo].length>0) {
+                [resultStr appendFormat:@"\n%@",[self formatTSForGCMWithKey:key value:obj classInfo:classInfo]];
+            }
+        }
+    }];
+    [resultStr appendString:@"\n       }\n    }\n"];
     return resultStr;
 }
 
@@ -149,11 +166,82 @@
     return [NSString stringWithFormat:@"    var %@: %@",key,typeStr];
 }
 
+/**
+ *  格式化TS属性字符串
+ *
+ *  @param key       JSON里面key字段
+ *  @param value     JSON里面key对应的NSDiction或者NSArray
+ *  @param classInfo 类信息
+ *
+ *  @return
+ */
++ (NSString *)formatTSWithKey:(NSString *)key value:(NSObject *)value classInfo:(ESClassInfo *)classInfo{
+    NSString *typeStr = @"string";
+    //判断大小写
+    if ([ESUppercaseKeyWords containsObject:key] && [ESJsonFormatSetting defaultSetting].uppercaseKeyWordForId) {
+        key = [key uppercaseString];
+    }
+    if ([value isKindOfClass:[NSString class]]) {
+        return [NSString stringWithFormat:@"    %@: %@;",key,typeStr];
+    }else if([value isKindOfClass:[@(YES) class]]){
+        typeStr = @"boolean";
+        return [NSString stringWithFormat:@"    %@: %@;",key,typeStr];
+    }else if([value isKindOfClass:[NSNumber class]]){
+        typeStr = @"number";
+        return [NSString stringWithFormat:@"    %@: %@;",key,typeStr];
+    }else if([value isKindOfClass:[NSArray class]]){
+        ESClassInfo *childInfo = classInfo.propertyArrayDic[key];
+        NSString *type = childInfo.className;
+        return [NSString stringWithFormat:@"    %@: Array<%@>;",key,type==nil?@"any":type];
+    }else if ([value isKindOfClass:[NSDictionary class]]){
+        ESClassInfo *childInfo = classInfo.propertyClassDic[key];
+        typeStr = childInfo.className;
+        if (!typeStr) {
+            typeStr = [key capitalizedString];
+        }
+        return [NSString stringWithFormat:@"    %@: %@;",key,typeStr];
+    }
+    return [NSString stringWithFormat:@"    %@: %@;",key,typeStr];
+}
+
+
+/**
+ 为了TS modelContainerPropertyGenericClass
+
+ @param key       JSON里面key字段
+ @param value     JSON里面key对应的NSDiction或者NSArray
+ @param classInfo 类信息
+ @return
+ */
++ (NSString *)formatTSForGCMWithKey:(NSString *)key value:(NSObject *)value classInfo:(ESClassInfo *)classInfo{
+    NSString *typeStr = @"";
+    //判断大小写
+    if ([ESUppercaseKeyWords containsObject:key] && [ESJsonFormatSetting defaultSetting].uppercaseKeyWordForId) {
+        key = [key uppercaseString];
+    }
+    
+    if([value isKindOfClass:[NSArray class]]){
+        ESClassInfo *childInfo = classInfo.propertyArrayDic[key];
+        NSString *type = childInfo.className;
+        if (type==nil) return [NSString stringWithFormat:@""];
+        return [NSString stringWithFormat:@"            '%@':%@,",key,type];
+    }else if ([value isKindOfClass:[NSDictionary class]]){
+        ESClassInfo *childInfo = classInfo.propertyClassDic[key];
+        typeStr = childInfo.className;
+        if (!typeStr) {
+            typeStr = [key capitalizedString];
+        }
+        return [NSString stringWithFormat:@"            '%@':%@,",key,typeStr];
+    }
+    return [NSString stringWithFormat:@""];
+}
 
 
 + (NSString *)parseClassHeaderContentWithClassInfo:(ESClassInfo *)classInfo{
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"isSwift"]) {
         return [self parseClassContentForSwiftWithClassInfo:classInfo];
+    }else if([[NSUserDefaults standardUserDefaults] boolForKey:@"isTs"]){
+        return [self parseClassContentForTSWithClassInfo:classInfo];
     }else{
         return [self parseClassHeaderContentForOjbcWithClassInfo:classInfo];
     }
@@ -253,6 +341,29 @@
     return [result copy];
 }
 
++ (NSString *)parseClassContentForTSWithClassInfo:(ESClassInfo *)classInfo{
+    NSString *superClassString = [[NSUserDefaults standardUserDefaults] valueForKey:@"SuperClass"];
+    NSMutableString *result = nil;
+    if (superClassString&&superClassString.length>0) {
+        result = [NSMutableString stringWithFormat:@"\n// @ts-ignore\nclass %@ extends %@{\n",classInfo.className,superClassString];
+    }else{
+        result = [NSMutableString stringWithFormat:@"\n// @ts-ignore\nclass %@ extends FCObject{\n",classInfo.className];
+    }
+    [result appendString:classInfo.propertyContent];
+    //添加构建方方
+    [result appendString:@"\n    constructor(data: object){\n        super(data);\n        if (!data) return;\n        // @ts-ignore\n        this.modelAddProperty.call(this, data);\n    }\n"];
+    [result appendString:@"\n    modelCustomPropertyMapper = function () {\n       return{\n       }\n    }\n"];
+    
+    [result appendString:classInfo.classContentForZ];
+    [result appendString:@"\n}"];
+    if ([ESJsonFormatSetting defaultSetting].outputToFiles) {
+//        [result insertString:@"import UIKit\n\n" atIndex:0];
+//        //headerStr
+//        NSMutableString *headerString = [NSMutableString stringWithString:[self dealHeaderStrWithClassInfo:classInfo type:@"swift"]];
+//        [result insertString:headerString atIndex:0];
+    }
+    return [result copy];
+}
 
 /**
  *  生成 MJExtension 的集合中指定对象的方法

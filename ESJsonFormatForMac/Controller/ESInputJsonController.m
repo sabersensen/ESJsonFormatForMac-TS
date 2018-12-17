@@ -92,10 +92,11 @@
         
         self.isSwift = NO;
         self.isPost = YES;
-        
+        self.isTs = NO;
         
         //因为我没有找到设置segmentcontroller初始设置选中的方法...所以...这样了
         [[NSUserDefaults standardUserDefaults] setBool:self.isSwift forKey:@"isSwift"];
+        [[NSUserDefaults standardUserDefaults] setBool:self.isTs forKey:@"isTs"];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"isYYModel"];
         self.rowCount = 1;
         self.selectedRow = -1;
@@ -400,10 +401,14 @@
     
     NSLog(@"%ld",sender.selectedSegment);
     self.isSwift = (sender.selectedSegment == 0)?YES:NO;
+    self.isTs = (sender.selectedSegment == 2)?YES:NO;
     
     [[NSUserDefaults standardUserDefaults] setBool:self.isSwift forKey:@"isSwift"];
-    
+    [[NSUserDefaults standardUserDefaults] setBool:self.isTs forKey:@"isTs"];
+
     [ESJsonFormat instance].isSwift = self.isSwift;
+    [ESJsonFormat instance].isTs = self.isTs;
+
 }
 
 
@@ -585,8 +590,10 @@
                     weakSelf.hLabel.stringValue = [NSString stringWithFormat:@"%@.swift",className];
                      weakSelf.mLabel.stringValue  = @"";
                     
+                }else if(weakSelf.isTs){
+                    weakSelf.hLabel.stringValue = [NSString stringWithFormat:@"%@.ts",className];
+                    weakSelf.mLabel.stringValue  = @"";
                 }else{
-                   
                     weakSelf.hLabel.stringValue = [NSString stringWithFormat:@"%@.h",className];
                     weakSelf.mLabel.stringValue  = [NSString stringWithFormat:@"%@.m",className];
                     
@@ -754,9 +761,23 @@
         
     }else{
         if (!self.hContentTextView) return;
-        if (!self.isSwift) {
+        if (self.isSwift) {
+            
+            //Swift
+            [self.hContentTextView insertText:classInfo.classContentForH];
+            
+            //再添加把其他类的的字符串拼接到最后面
+            [self.hContentTextView insertText:classInfo.classInsertTextViewContentForH replacementRange:NSMakeRange(self.hContentTextView.string.length, 0)];
             
             
+        }else if(self.isTs){
+            NSLog(@"%@",classInfo.classContentForH);
+
+            [self.hContentTextView insertText:classInfo.classContentForH];
+            
+            //再添加把其他类的的字符串拼接到最后面
+            [self.hContentTextView insertText:classInfo.classInsertTextViewContentForH replacementRange:NSMakeRange(self.hContentTextView.string.length, 0)];
+        }else{
             NSString *mContent = [NSString stringWithFormat:@"%@\n%@",classInfo.classContentForM,classInfo.classInsertTextViewContentForM];
             self.mContentTextView.string = mContent;
             
@@ -766,30 +787,23 @@
             [self.hContentTextView insertText:[NSString stringWithFormat:@"\n%@",classInfo.classInsertTextViewContentForH] replacementRange:NSMakeRange(self.hContentTextView.string.length, 0)];
             
             //.m文件内容不能使用废除的insert方法插入，否则""将失效；
-//            [self.mContentTextView insertText:classInfo.classContentForM replacementRange:NSMakeRange(0, self.mContentTextView.string.length)];
-//            [self.mContentTextView insertText:[NSString stringWithFormat:@"\n%@",classInfo.classInsertTextViewContentForM] replacementRange:NSMakeRange(self.mContentTextView.string.length,0)];
+            //            [self.mContentTextView insertText:classInfo.classContentForM replacementRange:NSMakeRange(0, self.mContentTextView.string.length)];
+            //            [self.mContentTextView insertText:[NSString stringWithFormat:@"\n%@",classInfo.classInsertTextViewContentForM] replacementRange:NSMakeRange(self.mContentTextView.string.length,0)];
             
-//             //如果不输入主类的话，就可以分开展示
-//            //先添加主类的属性
-//            [self.mainClassContentTextView insertText:classInfo.propertyContent];
-//            
-//            //再添加把其他类的的字符串拼接到最后面
-//            [self.hContentTextView insertText:classInfo.classInsertTextViewContentForH replacementRange:NSMakeRange(self.hContentTextView.string.length, 0)];
-//            
-//            //@class
-//            [self.classContentTextView insertText:classInfo.atClassContent];
+            //             //如果不输入主类的话，就可以分开展示
+            //            //先添加主类的属性
+            //            [self.mainClassContentTextView insertText:classInfo.propertyContent];
+            //
+            //            //再添加把其他类的的字符串拼接到最后面
+            //            [self.hContentTextView insertText:classInfo.classInsertTextViewContentForH replacementRange:NSMakeRange(self.hContentTextView.string.length, 0)];
+            //
+            //            //@class
+            //            [self.classContentTextView insertText:classInfo.atClassContent];
             
             
-//            //.m文件
-//            [self.mContentTextView insertText:classInfo.classInsertTextViewContentForM replacementRange:NSMakeRange(0, self.mContentTextView.string.length)];
+            //            //.m文件
+            //            [self.mContentTextView insertText:classInfo.classInsertTextViewContentForM replacementRange:NSMakeRange(0, self.mContentTextView.string.length)];
             
-        }else{
-        
-            //Swift
-            [self.hContentTextView insertText:classInfo.classContentForH];
-            
-            //再添加把其他类的的字符串拼接到最后面
-            [self.hContentTextView insertText:classInfo.classInsertTextViewContentForH replacementRange:NSMakeRange(self.hContentTextView.string.length, 0)];
         }
         
         [self creatFile];

@@ -82,9 +82,12 @@
     return [ESJsonFormatManager parseClassHeaderContentWithClassInfo:self];
 }
 
-
 - (NSString *)classContentForM{
     return [ESJsonFormatManager parseClassImpContentWithClassInfo:self];
+}
+
+- (NSString *)classContentForZ{
+    return [ESJsonFormatManager parsePropertyContentZWithClassInfo:self];
 }
 
 
