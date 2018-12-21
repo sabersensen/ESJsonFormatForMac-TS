@@ -1,10 +1,13 @@
 
-至前致谢：此工具核心内容来自[EnjoySR/ESJsonFormat-Xcode](https://github.com/EnjoySR/ESJsonFormat-Xcode)    
+至前致谢：此工具核心内容来自[EnjoySR/ESJsonFormat-Xcode](https://github.com/EnjoySR/ESJsonFormat-Xcode)    以及该开发工具原作者[简书地址](https://www.jianshu.com/p/a5e26ae42d8b)
 
-附上[简书地址](http://www.jianshu.com/p/a5e26ae42d8b),在使用中有任何问题或者好的建议可以在简书或者GitHub issue
+附上[简书地址](https://www.jianshu.com/p/428ba4f718d8),在使用中有任何问题或者好的建议可以在简书或者GitHub issue
 
+![Image text](https://github.com/sabersensen/imgFolder/blob/master/ZSX04.gif)
 
-![image](https://github.com/czhen09/ESJsonFormatForMac/raw/master/image/useGuide.gif)     
+## 2018-12-19
+* 配合FCObject 添加TypeScript功能
+
 
 ## 2017-10-31   
 * 软件版本升级到1.1;  
